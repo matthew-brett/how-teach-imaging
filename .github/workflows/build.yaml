@@ -39,7 +39,7 @@ jobs:
 
       - name: Build presentation
         run: |
-          make slides-jl
+          make slides
 
       # Push the book's HTML to github-pages
       - name: GitHub Pages action
