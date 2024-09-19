@@ -1,27 +1,26 @@
-default: slides
+PRESENTATION=index.qmd
+OUTPUT_DIR=_build
+NB_DIR=_notebooks
+OUTPUT_NB=$(NB_DIR)/$(patsubst %.qmd,%.ipynb,$(PRESENTATION))
+PYTHON ?= python
+PIP_INSTALL_CMD ?= $(PYTHON) -m pip install
+SDIRS=images data
 
-all: slides handout
+slides: $(PRESENTATION)
+	pip install -r requirements.txt
+	quarto render $(PRESENTATION) --to revealjs --output-dir $(OUTPUT_DIR)
 
-SOURCE=how_teach_imaging
-LINK_COLOR=blue
-
-# Need gpp for conditional stuff
-# `brew install gpp` on macOS
-
-# HTML options, without \ as quoting character (otherwise it will disable LaTeX
-# macros).
-GPP=gpp -U "<\#" ">" "\B" "|" ">" "<" ">" "\#" ""
-
-DO_PANDOC=pandoc --citeproc --variable urlcolor=$(LINK_COLOR) -o
-
-slides: $(SOURCE).md
-	$(GPP) $(SOURCE).md | $(DO_PANDOC) \
-		$(SOURCE)_slides.pdf \
-		-t beamer
-
-handout: $(SOURCE).md
-	$(GPP) -DHANDOUT=1 $(SOURCE).md | $(DO_PANDOC) \
-		$(SOURCE)_handout.pdf
+slides-jl: slides
+	# Jupyter-lite files for presentation build.
+	$(PIP_INSTALL_CMD) -r py-jl-requirements.txt
+	mkdir -p $(NB_DIR)
+	jupytext --to ipynb $(PRESENTATION) -o $(OUTPUT_NB)
+	cp -r $(SDIRS) $(NB_DIR)
+	$(PYTHON) ./scripts/process_notebooks.py $(NB_DIR)
+	$(PYTHON) -m jupyter lite build \
+		--contents $(NB_DIR) \
+		--output-dir $(OUTPUT_DIR)/interact \
+		--lite-dir $(NB_DIR)
 
 clean:
-	rm *.pdf
+	git clean -fxd
