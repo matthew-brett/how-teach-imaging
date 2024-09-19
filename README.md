@@ -1,1 +1,3 @@
-# Talk on how to teach imaging at TCD
+# Talk on imaging teaching at TCD
+
+I (MB) release this under a CC-By license.
